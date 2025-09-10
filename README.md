@@ -164,21 +164,6 @@ The project uses the following key dependencies:
 - **TensorBoard**: Training visualization
 - **Weights & Biases**: Experiment tracking
 
-## Performance
-
-- **UV Package Manager**: 10-100x faster than pip for dependency resolution
-- **Efficient Data Loading**: Multi-process data loading with pinned memory
-- **GPU Support**: Automatic CUDA detection and usage
-- **Memory Optimization**: Gradient checkpointing and efficient batching
-
-## Contributing
-
-1. Fork the repository
-2. Create a feature branch
-3. Make your changes
-4. Add tests for new functionality
-5. Submit a pull request
-
 ## License
 
 This project is licensed under the MIT License.
