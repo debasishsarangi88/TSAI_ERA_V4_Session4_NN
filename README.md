@@ -30,31 +30,31 @@ The `EfficientMNIST` model uses a carefully designed CNN architecture that maxim
 Input: 28×28×1 (MNIST image)
     ↓
 ┌─────────────────────────────────────────────────────────────────┐
-│  Conv1: 1→16 channels, 3×3 kernel, padding=1                   │
-│  BatchNorm1: 16 channels                                       │
-│  ReLU + MaxPool2D(2×2) → 14×14×16                             │
+│  Conv1: 1→16 channels, 3×3 kernel, padding=1                    │
+│  BatchNorm1: 16 channels                                        │
+│  ReLU + MaxPool2D(2×2) → 14×14×16                               │
 └─────────────────────────────────────────────────────────────────┘
     ↓
 ┌─────────────────────────────────────────────────────────────────┐
-│  Conv2: 16→32 channels, 3×3 kernel, padding=1                  │
-│  BatchNorm2: 32 channels                                       │
-│  ReLU + MaxPool2D(2×2) → 7×7×32                               │
+│  Conv2: 16→32 channels, 3×3 kernel, padding=1                   │
+│  BatchNorm2: 32 channels                                        │
+│  ReLU + MaxPool2D(2×2) → 7×7×32                                 │
 └─────────────────────────────────────────────────────────────────┘
     ↓
 ┌─────────────────────────────────────────────────────────────────┐
-│  Conv3: 32→64 channels, 3×3 kernel, padding=1                  │
-│  BatchNorm3: 64 channels                                       │
-│  ReLU + MaxPool2D(2×2) → 3×3×64                               │
+│  Conv3: 32→64 channels, 3×3 kernel, padding=1                   │
+│  BatchNorm3: 64 channels                                        │
+│  ReLU + MaxPool2D(2×2) → 3×3×64                                 │
 └─────────────────────────────────────────────────────────────────┘
     ↓
 ┌─────────────────────────────────────────────────────────────────┐
-│  Global Average Pooling → 1×1×64                               │
+│  Global Average Pooling → 1×1×64                                │
 └─────────────────────────────────────────────────────────────────┘
     ↓
 ┌─────────────────────────────────────────────────────────────────┐
-│  Flatten → 64 features                                         │
-│  Dropout(0.1)                                                  │
-│  Linear: 64→10 (no bias)                                       │
+│  Flatten → 64 features                                          │
+│  Dropout(0.1)                                                   │
+│  Linear: 64→10 (no bias)                                        │
 └─────────────────────────────────────────────────────────────────┘
     ↓
 Output: 10 classes (digits 0-9)
