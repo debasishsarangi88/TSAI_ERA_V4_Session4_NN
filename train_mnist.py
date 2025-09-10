@@ -10,9 +10,7 @@ import torch.nn as nn
 import torch.optim as optim
 from torch.utils.data import DataLoader, random_split
 from torchvision import datasets, transforms
-import logging
 import time
-from pathlib import Path
 
 
 class EfficientMNIST(nn.Module):
@@ -72,7 +70,7 @@ class EfficientMNIST(nn.Module):
         return x
     
     def get_parameter_count(self):
-        """Get detailed parameter breakdown."""
+        """Get parameter breakdown."""
         total_params = sum(p.numel() for p in self.parameters())
         conv_params = sum(p.numel() for name, p in self.named_parameters() if 'conv' in name)
         bn_params = sum(p.numel() for name, p in self.named_parameters() if 'bn' in name)
@@ -87,14 +85,12 @@ class EfficientMNIST(nn.Module):
 
 
 def load_mnist_data(batch_size=64, validation_split=0.1):
-    """Load MNIST dataset with optimized transforms."""
-    # Data transforms
+    """Load MNIST dataset."""
     transform = transforms.Compose([
         transforms.ToTensor(),
-        transforms.Normalize((0.1307,), (0.3081,))  # MNIST normalization
+        transforms.Normalize((0.1307,), (0.3081,))
     ])
     
-    # Load datasets
     train_dataset = datasets.MNIST(
         root='./data', train=True, download=True, transform=transform
     )
@@ -102,7 +98,6 @@ def load_mnist_data(batch_size=64, validation_split=0.1):
         root='./data', train=False, download=True, transform=transform
     )
     
-    # Split training data
     train_size = int((1 - validation_split) * len(train_dataset))
     val_size = len(train_dataset) - train_size
     
@@ -111,7 +106,6 @@ def load_mnist_data(batch_size=64, validation_split=0.1):
         generator=torch.Generator().manual_seed(42)
     )
     
-    # Create data loaders
     train_loader = DataLoader(train_dataset, batch_size=batch_size, shuffle=True)
     val_loader = DataLoader(val_dataset, batch_size=batch_size, shuffle=False)
     test_loader = DataLoader(test_dataset, batch_size=batch_size, shuffle=False)
@@ -120,24 +114,19 @@ def load_mnist_data(batch_size=64, validation_split=0.1):
 
 
 def train_model(model, train_loader, val_loader, test_loader, epochs=1, lr=0.015):
-    """Train the model with optimized settings."""
+    """Train the model."""
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     model.to(device)
     
-    # Optimizer with higher learning rate for 1-epoch training
     optimizer = optim.Adam(model.parameters(), lr=lr, weight_decay=1e-4)
     criterion = nn.CrossEntropyLoss()
-    
-    # Learning rate scheduler
     scheduler = optim.lr_scheduler.CosineAnnealingLR(optimizer, T_max=epochs, eta_min=0.001)
     
     print(f"Training on {device}")
     print(f"Model parameters: {sum(p.numel() for p in model.parameters())}")
     
     for epoch in range(epochs):
-        # Training
         model.train()
-        train_loss = 0.0
         correct = 0
         total = 0
         
@@ -149,12 +138,9 @@ def train_model(model, train_loader, val_loader, test_loader, epochs=1, lr=0.015
             loss = criterion(output, target)
             loss.backward()
             
-            # Gradient clipping for stability
             torch.nn.utils.clip_grad_norm_(model.parameters(), max_norm=1.0)
-            
             optimizer.step()
             
-            train_loss += loss.item()
             pred = output.argmax(dim=1, keepdim=True)
             correct += pred.eq(target.view_as(pred)).sum().item()
             total += target.size(0)
@@ -164,9 +150,7 @@ def train_model(model, train_loader, val_loader, test_loader, epochs=1, lr=0.015
                 print(f"Batch {batch_idx}/{len(train_loader)}, "
                       f"Loss: {loss.item():.4f}, Acc: {current_acc:.2f}%")
         
-        # Validation
         model.eval()
-        val_loss = 0.0
         val_correct = 0
         val_total = 0
         
@@ -174,22 +158,16 @@ def train_model(model, train_loader, val_loader, test_loader, epochs=1, lr=0.015
             for data, target in val_loader:
                 data, target = data.to(device), target.to(device)
                 output = model(data)
-                loss = criterion(output, target)
-                
-                val_loss += loss.item()
                 pred = output.argmax(dim=1, keepdim=True)
                 val_correct += pred.eq(target.view_as(pred)).sum().item()
                 val_total += target.size(0)
         
-        # Update learning rate
         scheduler.step()
         
         train_acc = 100.0 * correct / total
         val_acc = 100.0 * val_correct / val_total
-        
         print(f"Epoch {epoch+1}: Train Acc: {train_acc:.2f}%, Val Acc: {val_acc:.2f}%")
     
-    # Test evaluation
     model.eval()
     test_correct = 0
     test_total = 0
