@@ -21,30 +21,206 @@ A highly optimized neural network that achieves **>95% accuracy on MNIST in just
 ### Model Overview
 The `EfficientMNIST` model uses a carefully designed CNN architecture that maximizes learning efficiency while minimizing parameters:
 
+#### Architecture Flow Diagram
 ```
+┌─────────────────────────────────────────────────────────────────┐
+│                    EFFICIENT MNIST ARCHITECTURE                 │
+└─────────────────────────────────────────────────────────────────┘
+
 Input: 28×28×1 (MNIST image)
     ↓
-Conv1: 1→16 channels, 3×3 kernel, padding=1
-BatchNorm1: 16 channels
-ReLU + MaxPool2D(2×2) → 14×14×16
+┌─────────────────────────────────────────────────────────────────┐
+│  Conv1: 1→16 channels, 3×3 kernel, padding=1                   │
+│  BatchNorm1: 16 channels                                       │
+│  ReLU + MaxPool2D(2×2) → 14×14×16                             │
+└─────────────────────────────────────────────────────────────────┘
     ↓
-Conv2: 16→32 channels, 3×3 kernel, padding=1
-BatchNorm2: 32 channels
-ReLU + MaxPool2D(2×2) → 7×7×32
+┌─────────────────────────────────────────────────────────────────┐
+│  Conv2: 16→32 channels, 3×3 kernel, padding=1                  │
+│  BatchNorm2: 32 channels                                       │
+│  ReLU + MaxPool2D(2×2) → 7×7×32                               │
+└─────────────────────────────────────────────────────────────────┘
     ↓
-Conv3: 32→64 channels, 3×3 kernel, padding=1
-BatchNorm3: 64 channels
-ReLU + MaxPool2D(2×2) → 3×3×64
+┌─────────────────────────────────────────────────────────────────┐
+│  Conv3: 32→64 channels, 3×3 kernel, padding=1                  │
+│  BatchNorm3: 64 channels                                       │
+│  ReLU + MaxPool2D(2×2) → 3×3×64                               │
+└─────────────────────────────────────────────────────────────────┘
     ↓
-Global Average Pooling → 1×1×64
+┌─────────────────────────────────────────────────────────────────┐
+│  Global Average Pooling → 1×1×64                               │
+└─────────────────────────────────────────────────────────────────┘
     ↓
-Flatten → 64 features
-    ↓
-Dropout(0.1)
-    ↓
-Linear: 64→10 (no bias)
+┌─────────────────────────────────────────────────────────────────┐
+│  Flatten → 64 features                                         │
+│  Dropout(0.1)                                                  │
+│  Linear: 64→10 (no bias)                                       │
+└─────────────────────────────────────────────────────────────────┘
     ↓
 Output: 10 classes (digits 0-9)
+```
+
+#### Visual Architecture Representation
+```
+                    MNIST Input (28×28×1)
+                           │
+                    ┌──────▼──────┐
+                    │   Conv1     │ 1→16 channels
+                    │ 3×3, pad=1  │ 144 parameters
+                    └──────┬──────┘
+                           │
+                    ┌──────▼──────┐
+                    │ BatchNorm1  │ 16 channels
+                    │    + ReLU   │ 32 parameters
+                    └──────┬──────┘
+                           │
+                    ┌──────▼──────┐
+                    │ MaxPool2D   │ 14×14×16
+                    │    (2×2)    │
+                    └──────┬──────┘
+                           │
+                    ┌──────▼──────┐
+                    │   Conv2     │ 16→32 channels
+                    │ 3×3, pad=1  │ 4,608 parameters
+                    └──────┬──────┘
+                           │
+                    ┌──────▼──────┐
+                    │ BatchNorm2  │ 32 channels
+                    │    + ReLU   │ 64 parameters
+                    └──────┬──────┘
+                           │
+                    ┌──────▼──────┐
+                    │ MaxPool2D   │ 7×7×32
+                    │    (2×2)    │
+                    └──────┬──────┘
+                           │
+                    ┌──────▼──────┐
+                    │   Conv3     │ 32→64 channels
+                    │ 3×3, pad=1  │ 18,432 parameters
+                    └──────┬──────┘
+                           │
+                    ┌──────▼──────┐
+                    │ BatchNorm3  │ 64 channels
+                    │    + ReLU   │ 128 parameters
+                    └──────┬──────┘
+                           │
+                    ┌──────▼──────┐
+                    │ MaxPool2D   │ 3×3×64
+                    │    (2×2)    │
+                    └──────┬──────┘
+                           │
+                    ┌──────▼──────┐
+                    │ Global Avg  │ 1×1×64
+                    │   Pooling   │
+                    └──────┬──────┘
+                           │
+                    ┌──────▼──────┐
+                    │  Flatten    │ 64 features
+                    │ + Dropout   │ 0.1 rate
+                    └──────┬──────┘
+                           │
+                    ┌──────▼──────┐
+                    │  Linear     │ 64→10 classes
+                    │ (no bias)   │ 640 parameters
+                    └──────┬──────┘
+                           │
+                    ┌──────▼──────┐
+                    │   Output    │ 10 classes
+                    │ (digits 0-9)│
+                    └─────────────┘
+```
+
+#### Data Flow Visualization
+```
+Input Image: 28×28×1
+     │
+     ▼
+┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
+│ Conv1   │───▶│ Batch1  │───▶│ ReLU    │───▶│ MaxPool │
+│ 1→16    │    │ 16 ch   │    │         │    │ 2×2     │
+└─────────┘    └─────────┘    └─────────┘    └─────────┘
+     │              │              │              │
+     └──────────────┼──────────────┼──────────────┘
+                    │              │
+                    ▼              ▼
+               14×14×16       14×14×16
+                    │
+                    ▼
+┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
+│ Conv2   │───▶│ Batch2  │───▶│ ReLU    │───▶│ MaxPool │
+│ 16→32   │    │ 32 ch   │    │         │    │ 2×2     │
+└─────────┘    └─────────┘    └─────────┘    └─────────┘
+     │              │              │              │
+     └──────────────┼──────────────┼──────────────┘
+                    │              │
+                    ▼              ▼
+                7×7×32         7×7×32
+                    │
+                    ▼
+┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
+│ Conv3   │───▶│ Batch3  │───▶│ ReLU    │───▶│ MaxPool │
+│ 32→64   │    │ 64 ch   │    │         │    │ 2×2     │
+└─────────┘    └─────────┘    └─────────┘    └─────────┘
+     │              │              │              │
+     └──────────────┼──────────────┼──────────────┘
+                    │              │
+                    ▼              ▼
+                3×3×64         3×3×64
+                    │
+                    ▼
+┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
+│ Global  │───▶│Flatten  │───▶│ Dropout │───▶│ Linear  │
+│ AvgPool │    │ 64 feat │    │  0.1    │    │ 64→10   │
+└─────────┘    └─────────┘    └─────────┘    └─────────┘
+     │              │              │              │
+     └──────────────┼──────────────┼──────────────┘
+                    │              │
+                    ▼              ▼
+                1×1×64          10 classes
+```
+
+#### Interactive Architecture Diagram
+```mermaid
+graph TD
+    A["Input Image<br/>28×28×1"] --> B["Conv1<br/>1→16 channels<br/>3×3 kernel, pad=1<br/>144 params"]
+    B --> C["BatchNorm1<br/>16 channels<br/>32 params"]
+    C --> D["ReLU + MaxPool2D<br/>14×14×16"]
+    D --> E["Conv2<br/>16→32 channels<br/>3×3 kernel, pad=1<br/>4,608 params"]
+    E --> F["BatchNorm2<br/>32 channels<br/>64 params"]
+    F --> G["ReLU + MaxPool2D<br/>7×7×32"]
+    G --> H["Conv3<br/>32→64 channels<br/>3×3 kernel, pad=1<br/>18,432 params"]
+    H --> I["BatchNorm3<br/>64 channels<br/>128 params"]
+    I --> J["ReLU + MaxPool2D<br/>3×3×64"]
+    J --> K["Global Average Pooling<br/>1×1×64"]
+    K --> L["Flatten<br/>64 features"]
+    L --> M["Dropout<br/>0.1 rate"]
+    M --> N["Linear Layer<br/>64→10 classes<br/>640 params<br/>No bias"]
+    N --> O["Output<br/>10 classes<br/>Digits 0-9"]
+    
+    style A fill:#e1f5fe
+    style O fill:#c8e6c9
+    style B fill:#fff3e0
+    style E fill:#fff3e0
+    style H fill:#fff3e0
+    style N fill:#f3e5f5
+```
+
+#### Feature Map Visualization
+```
+Input: 28×28×1 (MNIST digit)
+    │
+    ▼
+┌─────────────────────────────────────────────────────────────┐
+│  Feature Maps at Each Stage                                │
+├─────────────────────────────────────────────────────────────┤
+│  Conv1 Output: 14×14×16  ████████████████████████████████  │
+│  Conv2 Output: 7×7×32    ████████████████████████████████  │
+│  Conv3 Output: 3×3×64    ████████████████████████████████  │
+│  GAP Output: 1×1×64      ████████████████████████████████  │
+└─────────────────────────────────────────────────────────────┘
+    │
+    ▼
+Classification: 10 classes (0-9)
 ```
 
 ### Parameter Breakdown
