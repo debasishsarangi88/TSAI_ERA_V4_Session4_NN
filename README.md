@@ -76,59 +76,10 @@ Output: 10 classes (digits 0-9)
 ```
 
 #### V1.0 Visual Architecture Representation
-```
-                    MNIST Input (28×28×1)
-                           │
-                    ┌──────▼──────┐
-                    │   Conv1     │ 1→8 channels
-                    │ 3×3, pad=1  │ 72 parameters
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │ ReLU + Max  │ 14×14×8
-                    │ Pool2D(2×2) │
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │   Conv2     │ 8→16 channels
-                    │ 3×3, pad=1  │ 1,152 parameters
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │ ReLU + Max  │ 7×7×16
-                    │ Pool2D(2×2) │
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │   Conv3     │ 16→24 channels
-                    │ 3×3, pad=1  │ 3,456 parameters
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │ ReLU + Max  │ 3×3×24
-                    │ Pool2D(2×2) │
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │  Flatten    │ 216 features
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │  Linear1    │ 216→88
-                    │ + ReLU +    │ 19,008 parameters
-                    │ Dropout(0.3)│
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │  Linear2    │ 88→10
-                    │ (output)    │ 880 parameters
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │   Output    │ 10 classes
-                    │ (digits 0-9)│
-                    └─────────────┘
-```
+
+![V1.0 Architecture Diagram](v1_architecture_diagram.png)
+
+*Figure 1: V1.0 Traditional CNN Architecture - Complete data flow from input to output with parameter counts and layer dimensions*
 
 #### V1.0 Parameter Breakdown
 | Component | Parameters | Percentage |
@@ -219,124 +170,23 @@ Input: 28×28×1 (MNIST image)
 Output: 10 classes (digits 0-9)
 ```
 
-#### Visual Architecture Representation
-```
-                    MNIST Input (28×28×1)
-                           │
-                    ┌──────▼──────┐
-                    │   Conv1     │ 1→16 channels
-                    │ 3×3, pad=1  │ 144 parameters
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │ BatchNorm1  │ 16 channels
-                    │    + ReLU   │ 32 parameters
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │ MaxPool2D   │ 14×14×16
-                    │    (2×2)    │
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │   Conv2     │ 16→32 channels
-                    │ 3×3, pad=1  │ 4,608 parameters
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │ BatchNorm2  │ 32 channels
-                    │    + ReLU   │ 64 parameters
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │ MaxPool2D   │ 7×7×32
-                    │    (2×2)    │
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │   Conv3     │ 32→64 channels
-                    │ 3×3, pad=1  │ 18,432 parameters
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │ BatchNorm3  │ 64 channels
-                    │    + ReLU   │ 128 parameters
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │ MaxPool2D   │ 3×3×64
-                    │    (2×2)    │
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │ Global Avg  │ 1×1×64
-                    │   Pooling   │
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │  Flatten    │ 64 features
-                    │ + Dropout   │ 0.1 rate
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │  Linear     │ 64→10 classes
-                    │ (no bias)   │ 640 parameters
-                    └──────┬──────┘
-                           │
-                    ┌──────▼──────┐
-                    │   Output    │ 10 classes
-                    │ (digits 0-9)│
-                    └─────────────┘
-```
+#### V2.0 Visual Architecture Representation
+
+![V2.0 Architecture Diagram](v2_architecture_diagram.png)
+
+*Figure 2: V2.0 Efficient CNN Architecture - Complete data flow with Global Average Pooling and Batch Normalization*
 
 #### Data Flow Visualization
-```
-Input Image: 28×28×1
-     │
-     ▼
-┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
-│ Conv1   │───▶│ Batch1  │───▶│ ReLU    │───▶│ MaxPool │
-│ 1→16    │    │ 16 ch   │    │         │    │ 2×2     │
-└─────────┘    └─────────┘    └─────────┘    └─────────┘
-     │              │              │              │
-     └──────────────┼──────────────┼──────────────┘
-                    │              │
-                    ▼              ▼
-               14×14×16       14×14×16
-                    │
-                    ▼
-┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
-│ Conv2   │───▶│ Batch2  │───▶│ ReLU    │───▶│ MaxPool │
-│ 16→32   │    │ 32 ch   │    │         │    │ 2×2     │
-└─────────┘    └─────────┘    └─────────┘    └─────────┘
-     │              │              │              │
-     └──────────────┼──────────────┼──────────────┘
-                    │              │
-                    ▼              ▼
-                7×7×32         7×7×32
-                    │
-                    ▼
-┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
-│ Conv3   │───▶│ Batch3  │───▶│ ReLU    │───▶│ MaxPool │
-│ 32→64   │    │ 64 ch   │    │         │    │ 2×2     │
-└─────────┘    └─────────┘    └─────────┘    └─────────┘
-     │              │              │              │
-     └──────────────┼──────────────┼──────────────┘
-                    │              │
-                    ▼              ▼
-                3×3×64         3×3×64
-                    │
-                    ▼
-┌─────────┐    ┌─────────┐    ┌─────────┐    ┌─────────┐
-│ Global  │───▶│Flatten  │───▶│ Dropout │───▶│ Linear  │
-│ AvgPool │    │ 64 feat │    │  0.1    │    │ 64→10   │
-└─────────┘    └─────────┘    └─────────┘    └─────────┘
-     │              │              │              │
-     └──────────────┼──────────────┼──────────────┘
-                    │              │
-                    ▼              ▼
-                1×1×64          10 classes
-```
+
+![Data Flow Visualization](dataflow_visualization.png)
+
+*Figure 3: Complete Data Flow Visualization - Shows both V1.0 and V2.0 processing paths with feature map transformations*
+
+#### Parameter Distribution Comparison
+
+![Parameter Comparison Chart](parameter_comparison.png)
+
+*Figure 4: Parameter Distribution Comparison - Visual comparison of parameter allocation between V1.0 and V2.0 architectures*
 
 #### Interactive Architecture Diagrams
 
@@ -392,19 +242,25 @@ graph TD
 
 ### 🔗 Interactive Visualization Links
 
-#### Architecture Diagram Tools
+#### Local Architecture Diagrams
+- **[V1.0 Architecture Diagram](v1_architecture_diagram.png)** - Traditional CNN with FC layers
+- **[V2.0 Architecture Diagram](v2_architecture_diagram.png)** - Efficient CNN with Global Average Pooling
+- **[Data Flow Visualization](dataflow_visualization.png)** - Complete processing pipeline comparison
+- **[Parameter Comparison Chart](parameter_comparison.png)** - Visual parameter distribution analysis
+
+#### Online Architecture Diagram Tools
 - **[Netron](https://netron.app/)** - Interactive neural network visualizer
 - **[TensorBoard](https://www.tensorflow.org/tensorboard)** - TensorFlow's visualization toolkit
 - **[PyTorchViz](https://github.com/szagoruyko/pytorchviz)** - PyTorch model visualization
 - **[CNN Explainer](https://poloclub.github.io/cnn-explainer/)** - Interactive CNN visualization
 
-#### Data Flow Visualization
+#### Data Flow Visualization Tools
 - **[Distill.pub CNN Explainer](https://distill.pub/2020/attribution-baselines/)** - Interactive CNN feature visualization
 - **[TensorSpace.js](https://tensorspace.org/)** - 3D neural network visualization
 - **[Neural Network Playground](https://playground.tensorflow.org/)** - Interactive neural network training
 - **[Weights & Biases](https://wandb.ai/)** - Experiment tracking and visualization
 
-#### Model Architecture Comparison
+#### Model Architecture Resources
 - **[Model Zoo](https://pytorch.org/vision/stable/models.html)** - PyTorch model architectures
 - **[Papers With Code](https://paperswithcode.com/)** - State-of-the-art model implementations
 - **[Hugging Face Model Hub](https://huggingface.co/models)** - Pre-trained model repository
